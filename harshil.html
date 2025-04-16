@@ -1,0 +1,917 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row =>
+                    row.some(cell => cell !== '' && cell !== null && cell !== undefined)
+                );
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HARSHIL YOGI | Cyberpunk Cloud Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;600&display=swap');
+
+        :root {
+            --light-gray: #d1d5db;
+            --medium-gray: #6b7280;
+            --dark-gray: #4b5563;
+            --black-bg: #000000;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--black-bg);
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .cyber-border {
+            border: 1px solid var(--light-gray);
+            box-shadow: 0 0 10px var(--light-gray);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px var(--light-gray), 0 0 10px var(--light-gray);
+        }
+
+        .neon-gray-text {
+            text-shadow: 0 0 5px var(--medium-gray), 0 0 10px var(--medium-gray);
+        }
+
+        .neon-dark-gray-text {
+            text-shadow: 0 0 5px var(--dark-gray), 0 0 10px var(--dark-gray);
+        }
+
+        .glow-card {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .glow-card:hover {
+            box-shadow: 0 0 15px var(--light-gray), 0 0 30px rgba(209, 213, 219, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .tech-tag {
+            background: rgba(209, 213, 219, 0.1);
+            border: 1px solid var(--light-gray);
+            color: var(--light-gray);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        #threejs-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .terminal {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--light-gray);
+            font-family: 'Courier New', monospace;
+            color: #ffffff;
+            text-shadow: 0 0 5px #ffffff;
+        }
+
+        .terminal-header {
+            background: rgba(209, 213, 219, 0.2);
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .terminal-cursor {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: var(--light-gray);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .progress-bar {
+            background: rgba(209, 213, 219, 0.2);
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--dark-gray), var(--light-gray));
+            height: 100%;
+            transition: width 1s ease;
+        }
+
+        .holographic {
+            background: linear-gradient(135deg, rgba(209, 213, 219, 0.1), rgba(107, 114, 128, 0.1));
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- 3D Background -->
+    <div id="threejs-container"></div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8 relative z-10">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-16">
+            <div class="mb-6 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-bold neon-text">HARSHIL YOGI</h1>
+                <p class="text-xl neon-gray-text">CLOUD ENGINEER // DEVOPS ENTHUSIAST</p>
+                <p class="text-sm mt-2">Ahmedabad, Gujarat | (+91) 91563811638 | harshilyogi077@gmail.com</p>
+            </div>
+
+            <nav class="flex space-x-6">
+                <a href="#about" class="nav-link text-white hover:text-light-gray">ABOUT</a>
+                <a href="#skills" class="nav-link text-white hover:text-light-gray">SKILLS</a>
+                <a href="#experience" class="nav-link text-white hover:text-light-gray">EXPERIENCE</a>
+                <a href="#projects" class="nav-link text-white hover:text-light-gray">PROJECTS</a>
+                <a href="#contact" class="nav-link text-white hover:text-light-gray">CONTACT</a>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="holographic rounded-lg p-8 mb-20 glow-card">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 neon-text">CLOUD ENGINEER</h2>
+                    <h3 class="text-2xl md:text-3xl mb-6 neon-dark-gray-text">BUILDING SERVERLESS SOLUTIONS ON AWS</h3>
+                    <p class="text-lg mb-6">Aspiring Cloud Engineer with hands-on experience in AWS, Azure, and GCP.
+                        Proficient in developing serverless applications and CI/CD pipelines, with a strong foundation
+                        in cloud engineering.</p>
+                    <div class="flex space-x-4">
+                        <a href="#projects"
+                            class="px-6 py-3 bg-transparent border border-light-gray text-light-gray hover:bg-light-gray hover:text-black transition-all">
+                            VIEW PROJECTS
+                        </a>
+                        <a href="#contact"
+                            class="px-6 py-3 bg-light-gray text-black hover:bg-transparent hover:text-light-gray hover:border hover:border-light-gray transition-all">
+                            CONTACT ME
+                        </a>
+                    </div>
+                </div>
+
+                <div class="terminal rounded-lg overflow-hidden">
+                    <div class="terminal-header p-3 flex items-center">
+                        <div class="flex space-x-2 mr-4">
+                            <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                        </div>
+                        <div class="text-sm">bash - cloud-architecture.sh</div>
+                    </div>
+                    <div class="p-4 h-64 overflow-y-auto" id="terminal-content">
+                        <p class="mb-2">$ <span class="typing-text"></span><span class="terminal-cursor">|</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 neon-text">PERSONAL <span class="neon-gray-text">SUMMARY</span></h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="glow-card rounded-lg p-8 col-span-2">
+                    <h3 class="text-2xl font-bold mb-4 neon-dark-gray-text">CLOUD & DEVOPS SPECIALIST</h3>
+                    <p class="mb-4">A passionate cloud engineer with hands-on experience in AWS, Azure, and GCP cloud
+                        platforms. Skilled in developing serverless applications and implementing CI/CD pipelines for
+                        automated deployments.</p>
+                    <p class="mb-4">Currently pursuing a Bachelor's degree in Computer Science & Engineering at CHARUSAT
+                        UNIVERSITY with a GPA of 7.51. Completed virtual internships in cloud technology, gaining
+                        practical experience with real-world cloud projects.</p>
+                    <p>Eager to leverage technical skills in cloud engineering and project management to contribute to
+                        innovative cloud projects and drive organizational growth through scalable, cost-effective cloud
+                        solutions.</p>
+                </div>
+
+                <div class="glow-card rounded-lg p-8 flex flex-col items-center justify-center">
+                    <div
+                        class="w-40 h-40 rounded-full border-4 border-light-gray mb-6 pulse flex items-center justify-center">
+                        <span class="text-4xl">👨‍💻</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 neon-text">CERTIFICATIONS</h3>
+                    <ul class="text-center">
+                        <li class="mb-2">AWS Cloud Practitioner</li>
+                        <li class="mb-2">AWS Cloud Quest</li>
+                        <li class="mb-2">Microsoft Azure Fundamentals</li>
+                    </ul>
+                    <div class="mt-4 flex space-x-4">
+                        <a href="https://www.linkedin.com/in/harshil-yogi-628597231" target="_blank"
+                            class="text-light-gray hover:underline">LinkedIn</a>
+                        <a href="https://github.com/YogilHarshil" target="_blank"
+                            class="text-light-gray hover:underline">GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 neon-text">TECH <span class="neon-gray-text">STACK</span></h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cloud Platforms -->
+                <div class="glow-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center neon-dark-gray-text">
+                        <span class="mr-2">☁️</span> CLOUD PLATFORMS
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>AWS</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Azure</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Google Cloud</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 70%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AWS Services -->
+                <div class="glow-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center neon-dark-gray-text">
+                        <span class="mr-2">⚡</span> AWS SERVICES
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>EC2</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Lambda</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>VPC</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CI/CD -->
+                <div class="glow-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center neon-dark-gray-text">
+                        <span class="mr-2">🔄</span> CI/CD
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Jenkins</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>GitHub Actions</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>AWS CodePipeline</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 70%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Containerization -->
+                <div class="glow-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center neon-dark-gray-text">
+                        <span class="mr-2">📦</span> CONTAINERIZATION
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Docker</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>ECS</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Kubernetes</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 65%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Programming -->
+                <div class="glow-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center neon-dark-gray-text">
+                        <span class="mr-2">💻</span> PROGRAMMING
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Python</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Bash</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>JavaScript</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="progress-bar h-2 w-full">
+                                <div class="progress-fill" style="width: 65%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Soft Skills -->
+                <div class="glow-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center neon-dark-gray-text">
+                        <span class="mr-2">🧠</span> SOFT SKILLS
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-3 py-1 rounded-full text-sm">Project Management</span>
+                        <span class="tech-tag px-3 py-1 rounded-full text-sm">Leadership</span>
+                        <span class="tech-tag px-3 py-1 rounded-full text-sm">Adaptability</span>
+                        <span class="tech-tag px-3 py-1 rounded-full text-sm">Time Management</span>
+                        <span class="tech-tag px-3 py-1 rounded-full text-sm">Teamwork</span>
+                        <span class="tech-tag px-3 py-1 rounded-full text-sm">Problem-solving</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 neon-text">WORK <span class="neon-gray-text">EXPERIENCE</span></h2>
+
+            <div class="glow-card rounded-lg p-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <h3 class="text-2xl font-bold neon-dark-gray-text">Cloud Internship</h3>
+                    <div class="text-light-gray mt-2 md:mt-0">05/2024 - 06/2024</div>
+                </div>
+                <h4 class="text-xl mb-4">Tech-A-Intern - Noida, Uttar Pradesh</h4>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Successfully completed a virtual internship in cloud technology, gaining a solid foundation in
+                        cloud engineering</li>
+                    <li>Developed a serverless web application using AWS Amplify and implemented Jenkins CI/CD pipelines
+                        with GitHub integration</li>
+                    <li>Acquired valuable skills in cloud infrastructure management and automation for future cloud
+                        projects</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 neon-text">CLOUD <span class="neon-gray-text">PROJECTS</span></h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Project 1 -->
+                <div class="glow-card rounded-lg overflow-hidden">
+                    <div class="h-48 bg-gradient-to-r from-gray-800 to-gray-600 flex items-center justify-center">
+                        <h3 class="text-2xl font-bold neon-text">SERVERLESS WEB APPLICATION</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="mb-4">Developed a web application with interactivity by connecting it to a serverless
+                            backend using Amazon API Gateway, AWS Lambda, and Amazon DynamoDB. Configured AWS Lambda to
+                            respond to API requests and hosted using AWS Amplify.</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">AWS Amplify</span>
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">API Gateway</span>
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">Lambda</span>
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">DynamoDB</span>
+                        </div>
+                        <p class="text-sm italic">This experience deepened my understanding of serverless architecture,
+                            emphasizing scalability and cost-effectiveness.</p>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="glow-card rounded-lg overflow-hidden">
+                    <div class="h-48 bg-gradient-to-r from-gray-700 to-gray-500 flex items-center justify-center">
+                        <h3 class="text-2xl font-bold neon-text">JENKINS CI/CD PIPELINE</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="mb-4">Established a CI/CD pipeline using Jenkins and Docker on an AWS EC2 instance to
+                            automate the development process. Integrated GitHub for code management, enabling continuous
+                            integration and delivery of applications.</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">Jenkins</span>
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">Docker</span>
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">AWS EC2</span>
+                            <span class="tech-tag px-3 py-1 rounded-full text-sm">GitHub</span>
+                        </div>
+                        <p class="text-sm italic">Enhanced deployment efficiency and reliability through automation of
+                            the development workflow.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 neon-text">EDUCATION <span class="neon-gray-text">& CERTIFICATIONS</span>
+            </h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glow-card rounded-lg p-8">
+                    <h3 class="text-2xl font-bold mb-4 neon-dark-gray-text">Bachelor of Technology: Computer Science &
+                        Engineering</h3>
+                    <h4 class="text-xl mb-4">CHARUSAT UNIVERSITY - Changa, Anand, India</h4>
+                    <p class="text-light-gray">GPA: 7.51 CGPA</p>
+                </div>
+
+                <div class="glow-card rounded-lg p-8">
+                    <h3 class="text-2xl font-bold mb-4 neon-dark-gray-text">Certifications</h3>
+                    <ul class="space-y-4">
+                        <li>
+                            <h4 class="text-lg font-semibold">AWS Cloud Practitioner Essentials</h4>
+                            <p>Explored fundamental AWS services and their use cases, learned essential cloud concepts
+                                and best practices.</p>
+                        </li>
+                        <li>
+                            <h4 class="text-lg font-semibold">AWS Cloud Quest: Cloud Practitioner</h4>
+                            <p>Gained foundational knowledge of core AWS services such as EC2, S3, and RDS. Developed
+                                skills in deploying and managing cloud resources effectively.</p>
+                        </li>
+                        <li>
+                            <h4 class="text-lg font-semibold">Microsoft Azure Fundamentals</h4>
+                            <p>Acquired basic understanding of Azure cloud services and solutions.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="mb-20">
+            <h2 class="text-3xl font-bold mb-8 neon-text">GET IN <span class="neon-gray-text">TOUCH</span></h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glow-card rounded-lg p-8">
+                    <h3 class="text-2xl font-bold mb-6 neon-dark-gray-text">CONTACT FORM</h3>
+                    <form>
+                        <div class="mb-4">
+                            <label class="block mb-2 neon-text">NAME</label>
+                            <input type="text"
+                                class="w-full bg-transparent border-b border-light-gray focus:outline-none py-2 px-1">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2 neon-text">EMAIL</label>
+                            <input type="email"
+                                class="w-full bg-transparent border-b border-light-gray focus:outline-none py-2 px-1">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2 neon-text">MESSAGE</label>
+                            <textarea
+                                class="w-full bg-transparent border-b border-light-gray focus:outline-none py-2 px-1 h-32"></textarea>
+                        </div>
+                        <button type="submit"
+                            class="px-6 py-3 bg-light-gray text-black hover:bg-transparent hover:text-light-gray hover:border hover:border-light-gray transition-all">
+                            SEND MESSAGE
+                        </button>
+                    </form>
+                </div>
+
+                <div class="glow-card rounded-lg p-8">
+                    <h3 class="text-2xl font-bold mb-6 neon-dark-gray-text">CONNECT</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-light-gray flex items-center justify-center mr-4">
+                                <span class="text-xl">📧</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">EMAIL</h4>
+                                <a href="mailto:harshilyogi077@gmail.com"
+                                    class="text-light-gray hover:underline">harshilyogi077@gmail.com</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-light-gray flex items-center justify-center mr-4">
+                                <span class="text-xl">🔗</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">LINKEDIN</h4>
+                                <a href="https://www.linkedin.com/in/harshil-yogi-628597231" target="_blank"
+                                    class="text-light-gray hover:underline">linkedin.com/in/harshil-yogi</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-light-gray flex items-center justify-center mr-4">
+                                <span class="text-xl">🐙</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">GITHUB</h4>
+                                <a href="https://github.com/YogilHarshil" target="_blank"
+                                    class="text-light-gray hover:underline">github.com/YogilHarshil</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-light-gray flex items-center justify-center mr-4">
+                                <span class="text-xl">📱</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">PHONE</h4>
+                                <a href="tel:+9191563811638" class="text-light-gray hover:underline">+91 91563811638</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="border-t border-light-gray pt-8 pb-12">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h2 class="text-2xl font-bold neon-text">HARSHIL YOGI</h2>
+                    <p class="text-sm">Cloud Engineer | DevOps Enthusiast</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-light-gray hover:text-white transition-all">PRIVACY</a>
+                    <a href="#" class="text-light-gray hover:text-white transition-all">TERMS</a>
+                    <a href="#contact" class="text-light-gray hover:text-white transition-all">CONTACT</a>
+                </div>
+            </div>
+            <div class="mt-8 text-center text-sm opacity-70">
+                <p>© 2024 Harshil Yogi. All systems operational.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Three.js scene
+        function initThreeJS() {
+            const container = document.getElementById('threejs-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Create scene
+            const scene = new THREE.Scene();
+
+            // Create camera
+            const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Create renderer
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            // Create floating cubes
+            const cubes = [];
+            const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xd1d5db,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.5
+            });
+
+            for (let i = 0; i < 10; i++) {
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.x = (Math.random() - 0.5) * 10;
+                cube.position.y = (Math.random() - 0.5) * 10;
+                cube.position.z = (Math.random() - 0.5) * 10;
+                cube.rotation.x = Math.random() * Math.PI;
+                cube.rotation.y = Math.random() * Math.PI;
+                cube.userData = {
+                    speedX: Math.random() * 0.02 - 0.01,
+                    speedY: Math.random() * 0.02 - 0.01,
+                    speedZ: Math.random() * 0.02 - 0.01,
+                    rotationSpeedX: Math.random() * 0.02,
+                    rotationSpeedY: Math.random() * 0.02
+                };
+                scene.add(cube);
+                cubes.push(cube);
+            }
+
+            // Create connecting lines
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x6b7280, transparent: true, opacity: 0.3 });
+            const lines = [];
+
+            for (let i = 0; i < cubes.length; i++) {
+                for (let j = i + 1; j < cubes.length; j++) {
+                    const geometry = new THREE.BufferGeometry().setFromPoints([
+                        cubes[i].position,
+                        cubes[j].position
+                    ]);
+                    const line = new THREE.Line(geometry, lineMaterial);
+                    scene.add(line);
+                    lines.push({ line, i, j });
+                }
+            }
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Update cubes
+                cubes.forEach(cube => {
+                    cube.position.x += cube.userData.speedX;
+                    cube.position.y += cube.userData.speedY;
+                    cube.position.z += cube.userData.speedZ;
+                    cube.rotation.x += cube.userData.rotationSpeedX;
+                    cube.rotation.y += cube.userData.rotationSpeedY;
+
+                    // Bounce off edges
+                    if (Math.abs(cube.position.x) > 5) cube.userData.speedX *= -1;
+                    if (Math.abs(cube.position.y) > 5) cube.userData.speedY *= -1;
+                    if (Math.abs(cube.position.z) > 5) cube.userData.speedZ *= -1;
+                });
+
+                // Update lines
+                lines.forEach(item => {
+                    const { line, i, j } = item;
+                    const geometry = new THREE.BufferGeometry().setFromPoints([
+                        cubes[i].position,
+                        cubes[j].position
+                    ]);
+                    line.geometry.dispose();
+                    line.geometry = geometry;
+                });
+
+                renderer.render(scene, camera);
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
+
+            animate();
+        }
+
+        // Terminal typing effect
+        function initTerminal() {
+            const texts = [
+                "aws amplify init",
+                "aws lambda create-function --function-name my-function",
+                "aws dynamodb create-table --table-name MyTable",
+                "aws cloudformation create-stack --stack-name my-stack",
+                "aws ec2 run-instances --image-id ami-12345678",
+                "aws s3 cp my-file.txt s3://my-bucket/",
+                "aws iam create-user --user-name new-user",
+                "aws cloudwatch get-metric-statistics --namespace AWS/EC2",
+                "terraform init",
+                "terraform apply"
+            ];
+
+            const terminalText = document.querySelector('.typing-text');
+            let textIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+
+            function type() {
+                const currentText = texts[textIndex];
+
+                if (isDeleting) {
+                    terminalText.textContent = currentText.substring(0, charIndex - 1);
+                    charIndex--;
+                } else {
+                    terminalText.textContent = currentText.substring(0, charIndex + 1);
+                    charIndex++;
+                }
+
+                if (!isDeleting && charIndex === currentText.length) {
+                    isDeleting = true;
+                    setTimeout(type, 2000);
+                } else if (isDeleting && charIndex === 0) {
+                    isDeleting = false;
+                    textIndex = (textIndex + 1) % texts.length;
+                    setTimeout(type, 500);
+                } else {
+                    setTimeout(type, isDeleting ? 50 : 100);
+                }
+            }
+
+            // Start typing effect
+            type();
+        }
+
+        // Smooth scrolling for navigation links
+        function initSmoothScroll() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+
+        // GSAP animations for scroll-triggered effects
+        function initScrollAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Animate section headings
+            document.querySelectorAll('section').forEach(section => {
+                const heading = section.querySelector('h2');
+                if (heading) {
+                    gsap.from(heading, {
+                        opacity: 0,
+                        y: 50,
+                        duration: 1,
+                        ease: 'power3.out',
+                        scrollTrigger: {
+                            trigger: section,
+                            start: 'top 80%',
+                            toggleActions: 'play none none none'
+                        }
+                    });
+                }
+
+                // Animate glow cards
+                const cards = section.querySelectorAll('.glow-card');
+                cards.forEach((card, index) => {
+                    gsap.from(card, {
+                        opacity: 0,
+                        y: 100,
+                        duration: 0.8,
+                        delay: index * 0.2,
+                        ease: 'power3.out',
+                        scrollTrigger: {
+                            trigger: card,
+                            start: 'top 90%',
+                            toggleActions: 'play none none none'
+                        }
+                    });
+                });
+            });
+        }
+
+        // Form submission handling (client-side only for demo)
+        function initContactForm() {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const name = form.querySelector('input[type="text"]').value;
+                const email = form.querySelector('input[type="email"]').value;
+                const message = form.querySelector('textarea').value;
+
+                if (name && email && message) {
+                    // For demo purposes, log to console
+                    console.log('Form submitted:', { name, email, message });
+                    alert('Message sent! (This is a demo - check console for details)');
+                    form.reset();
+                } else {
+                    alert('Please fill in all fields.');
+                }
+            });
+        }
+
+        // Initialize all features on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeJS();
+            initTerminal();
+            initSmoothScroll();
+            initScrollAnimations();
+            initContactForm();
+        });
+    </script>
+</body>
+</html>
+```
